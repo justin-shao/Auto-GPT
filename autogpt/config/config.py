@@ -31,6 +31,11 @@ class Config(metaclass=Singleton):
         self.allow_downloads = False
         self.skip_news = False
 
+        self.use_local_model = os.getenv("USE_LOCAL_MODEL", "False") == "True"
+        self.local_model_path = os.getenv("LOCAL_MODEL_PATH", "gpt2-xl")
+        self.local_model_tokenizer_path = os.getenv("LOCAL_MODEL_TOKENIZER_PATH", "gpt2-xl")
+        self.local_token_limit = int(os.getenv("LOCAL_TOKEN_LIMIT", 1000))
+
         self.ai_settings_file = os.getenv("AI_SETTINGS_FILE", "ai_settings.yaml")
         self.fast_llm_model = os.getenv("FAST_LLM_MODEL", "gpt-3.5-turbo")
         self.smart_llm_model = os.getenv("SMART_LLM_MODEL", "gpt-4")

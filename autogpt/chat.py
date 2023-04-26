@@ -76,16 +76,20 @@ def chat_with_ai(
             str: The AI's response.
             """
             model = cfg.fast_llm_model  # TODO: Change model from hardcode to argument
-            # Reserve 1000 tokens for the response
+            if cfg.use_local_model:
+                model = "gpt-2"
 
+            # Reserve 1000 tokens for the response
+            # TODO: preliminary local model test 400
             logger.debug(f"Token limit: {token_limit}")
-            send_token_limit = token_limit - 1000
+            send_token_limit = token_limit - 400
 
             relevant_memory = (
                 ""
                 if len(full_message_history) == 0
                 else permanent_memory.get_relevant(str(full_message_history[-9:]), 10)
             )
+            #TODO: Current get_relavant() method relies on OpenAI API for text-embedding-ada-002
 
             logger.debug(f"Memory Stats: {permanent_memory.get_stats()}")
 
@@ -96,7 +100,8 @@ def chat_with_ai(
                 current_context,
             ) = generate_context(prompt, relevant_memory, full_message_history, model)
 
-            while current_tokens_used > 2500:
+            #TODO: testing GPT2 - 600 tokens
+            while current_tokens_used > 600:
                 # remove memories until we are under 2500 tokens
                 relevant_memory = relevant_memory[:-1]
                 (

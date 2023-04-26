@@ -12,6 +12,10 @@ from autogpt.config import Config
 from autogpt.logs import logger
 from autogpt.types.openai import Message
 
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+
+
 CFG = Config()
 
 openai.api_key = CFG.openai_api_key
@@ -104,6 +108,11 @@ def create_chat_completion(
                     temperature=temperature,
                     max_tokens=max_tokens,
                 )
+            elif CFG.use_local_model:
+                tokenizer = AutoTokenizer.from_pretrained("gpt2-xl")
+                inference_model = AutoModelForCausalLM.from_pretrained("gpt2-xl")
+                inputs = tokenizer(messages, return_tensors="pt")
+                response = inference_model(**inputs)
             else:
                 response = api_manager.create_chat_completion(
                     model=model,
@@ -146,7 +155,10 @@ def create_chat_completion(
             raise RuntimeError(f"Failed to get response after {num_retries} retries")
         else:
             quit(1)
-    resp = response.choices[0].message["content"]
+    if CFG.use_local_model:
+        resp = response
+    else:
+        resp =response.choices[0].message["content"]
     for plugin in CFG.plugins:
         if not plugin.can_handle_on_response():
             continue
