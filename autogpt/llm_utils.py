@@ -109,10 +109,16 @@ def create_chat_completion(
                     max_tokens=max_tokens,
                 )
             elif CFG.use_local_model:
-                tokenizer = AutoTokenizer.from_pretrained("gpt2-xl")
-                inference_model = AutoModelForCausalLM.from_pretrained("gpt2-xl")
-                inputs = tokenizer(messages, return_tensors="pt")
-                response = inference_model(**inputs)
+                tokenizer = AutoTokenizer.from_pretrained(model)
+                inference_model = AutoModelForCausalLM.from_pretrained(model)
+                #TODO: messages are of type List[Message], which is essentially List[Typed_dict]
+                input_text = get_message_string(messages)
+                inputs = tokenizer(input_text, return_tensors="pt", padding=False, truncation=True)
+                kwargs = {"max_new_tokens": max_tokens, "eos_token_id": 50256, "pad_token_id": 50256}
+                summ_tokens = inference_model.generate(inputs["input_ids"],
+                                                       attention_mask=inputs["attention_mask"],
+                                                       **kwargs)
+                response = tokenizer.decode(summ_tokens[0])
             else:
                 response = api_manager.create_chat_completion(
                     model=model,
@@ -158,12 +164,16 @@ def create_chat_completion(
     if CFG.use_local_model:
         resp = response
     else:
-        resp =response.choices[0].message["content"]
+        resp = response.choices[0].message["content"]
     for plugin in CFG.plugins:
         if not plugin.can_handle_on_response():
             continue
         resp = plugin.on_response(resp)
     return resp
+
+
+def get_message_string(messages: List[Message]) -> str:
+    return ''.join("<|start|>{0}\n{1}<|end|>\n".format(m["role"], m["content"]) for m in messages)
 
 
 def get_ada_embedding(text):
