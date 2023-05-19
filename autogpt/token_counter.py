@@ -24,6 +24,7 @@ def count_message_tokens(
     Returns:
         int: The number of tokens used by the list of messages.
     """
+    print("DEBUG:", model)
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
@@ -43,6 +44,10 @@ def count_message_tokens(
         tokens_per_name = -1  # if there's a name, the role is omitted
     elif model == "gpt-4-0314":
         tokens_per_message = 3
+        tokens_per_name = 1
+    elif model:
+        # TODO: temporary bypass for testing local models. Consider refactoring this method to consider local model use.
+        tokens_per_message = 4
         tokens_per_name = 1
     else:
         raise NotImplementedError(

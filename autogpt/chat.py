@@ -37,6 +37,8 @@ def generate_context(prompt, relevant_memory, full_message_history, model):
             f"This reminds you of these events from your past:\n{relevant_memory}\n\n",
         ),
     ]
+    print("relevant memory:", relevant_memory)
+    print("current_context:", current_context)
 
     # Add messages from the full message history until we reach the token limit
     next_message_to_add_index = len(full_message_history) - 1
@@ -77,13 +79,13 @@ def chat_with_ai(
             """
             model = cfg.fast_llm_model  # TODO: Change model from hardcode to argument
             if cfg.use_local_model:
-                model = "gpt-2"
+                model = cfg.local_model_path;
 
             # Reserve 1000 tokens for the response
-            # TODO: preliminary local model test 400
+            # TODO: local model test - reserving 400 tokens instead
             logger.debug(f"Token limit: {token_limit}")
             send_token_limit = token_limit - 400
-
+            print("Debu - token amount:", send_token_limit)
             relevant_memory = (
                 ""
                 if len(full_message_history) == 0
@@ -100,7 +102,13 @@ def chat_with_ai(
                 current_context,
             ) = generate_context(prompt, relevant_memory, full_message_history, model)
 
-            #TODO: testing GPT2 - 600 tokens
+            # TODO: testing local model - 600 tokens. This isn't working in the current setup since
+            # context takes up ~1000 tokens, which means current_tokens_used will take up the entirety
+            # of the context window even with 0 tokens used for relevant_memory.
+            print("Generating context at the start: ")
+            print("relevant memory: ", relevant_memory)
+            print("insertion_index: ", insertion_index)
+            print("tokens_used: ", current_tokens_used)
             while current_tokens_used > 600:
                 # remove memories until we are under 2500 tokens
                 relevant_memory = relevant_memory[:-1]
