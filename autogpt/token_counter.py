@@ -24,8 +24,8 @@ def count_message_tokens(
     Returns:
         int: The number of tokens used by the list of messages.
     """
-    print("DEBUG:", model)
-    print(model == "gpt-2")
+    #print("DEBUG:", model)
+    #print(bool(model == "gpt2"))
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
